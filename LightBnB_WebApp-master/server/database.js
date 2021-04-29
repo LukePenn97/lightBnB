@@ -56,7 +56,7 @@ exports.getUserWithId = getUserWithId;
  */
 const addUser =  function(user) {
   return pool
-    .query(`INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *`, [user.name, user.email, 'password'])
+    .query(`INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *`, [user.name, user.email, user.password])
     .then((result) => {
       console.log("create user:", result.rows[0]);
       return result.rows[0];
@@ -169,9 +169,33 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  const queryParams = [];
+  for (const param in property) {
+    queryParams.push(property[param]);
+  }
+  console.log(queryParams);
+  return pool
+    .query(`INSERT INTO properties 
+    (title,
+    description,
+    number_of_bedrooms,
+    number_of_bathrooms,
+    parking_spaces,
+    cost_per_night,
+    thumbnail_photo_url,
+    cover_photo_url,
+    street,
+    country,
+    city,
+    province,
+    post_code,
+    owner_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`, queryParams)
+    .then((result) => {
+      console.log("create property:", result.rows[0]);
+      return result.rows[0];
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 }
 exports.addProperty = addProperty;
